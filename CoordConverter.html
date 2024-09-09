@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конвертер координат</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            background-color: #e0e0e0;
+        }
+        label, select, input, button {
+            display: block;
+            margin: 10px 0;
+        }
+        input[type="number"] {
+            width: 200px;
+        }
+        .inputs-container {
+            margin-top: 10px;
+        }
+        .inputs-container input {
+            width: 180px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+        .divider {
+            margin: 20px 0;
+            border-top: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Конвертер координат</h1>
+
+    <label for="conversion">Выберите преобразование:</label>
+    <select id="conversion" onchange="updateInputs()">
+        <option value="cartesian2dToPolar">Декартовая 2D → Полярная</option>
+        <option value="polarToCartesian2d">Полярная → Декартовая 2D</option>
+        <option value="cartesianToSpherical">Декартовая 3D → Сферическая</option>
+        <option value="cartesianToCylindrical">Декартовая 3D → Цилиндрическая</option>
+        <option value="sphericalToCartesian">Сферическая → Декартовая 3D</option>
+        <option value="cylindricalToCartesian">Цилиндрическая → Декартовая 3D</option>
+    </select>
+
+    <label for="precision">Точность - количество знаков после запятой:</label>
+    <input type="number" id="precision" min="0" value="2">
+
+    <div class="divider"></div>
+
+    <div class="inputs-container" id="inputs-container">
+        <!-- Поля ввода будут добавлены здесь динамически -->
+    </div>
+
+    <button onclick="convert()">Преобразовать</button>
+
+    <div class="result" id="result"></div>
+
+    <script>
+        function updateInputs() {
+            const conversion = document.getElementById('conversion').value;
+            const container = document.getElementById('inputs-container');
+            container.innerHTML = '';
+
+            const inputs = {
+                cartesian2dToPolar: ['X', 'Y'],
+                polarToCartesian2d: ['R', 'Theta'],
+                cartesianToSpherical: ['X', 'Y', 'Z'],
+                cartesianToCylindrical: ['X', 'Y', 'Z'],
+                sphericalToCartesian: ['Rho', 'Theta', 'Phi'],
+                cylindricalToCartesian: ['R', 'Theta', 'Z']
+            };
+
+            inputs[conversion].forEach(label => {
+                const labelElement = document.createElement('label');
+                labelElement.textContent = label + ':';
+                container.appendChild(labelElement);
+
+                const inputElement = document.createElement('input');
+                inputElement.type = 'number';
+                inputElement.id = label.toLowerCase().replace(' ', '-');
+                inputElement.step = 'any';
+                container.appendChild(inputElement);
+            });
+        }
+
+        function convert() {
+            const conversion = document.getElementById('conversion').value;
+            const precision = parseInt(document.getElementById('precision').value, 10);
+            const inputs = {
+                cartesian2dToPolar: ['x', 'y'],
+                polarToCartesian2d: ['r', 'theta'],
+                cartesianToSpherical: ['x', 'y', 'z'],
+                cartesianToCylindrical: ['x', 'y', 'z'],
+                sphericalToCartesian: ['rho', 'theta', 'phi'],
+                cylindricalToCartesian: ['r', 'theta', 'z']
+            };
+
+            const coords = inputs[conversion].map(id => parseFloat(document.getElementById(id).value));
+            if (coords.some(isNaN)) {
+                document.getElementById('result').innerText = 'Неверный формат координат.';
+                return;
+            }
+
+            let result;
+            if (conversion === 'cartesian2dToPolar') {
+                result = cartesian2DToPolar(...coords);
+            } else if (conversion === 'polarToCartesian2d') {
+                result = polarToCartesian2D(...coords);
+            } else if (conversion === 'cartesianToSpherical') {
+                result = cartesianToSpherical(...coords);
+            } else if (conversion === 'cartesianToCylindrical') {
+                result = cartesianToCylindrical(...coords);
+            } else if (conversion === 'sphericalToCartesian') {
+                result = sphericalToCartesian(...coords);
+            } else if (conversion === 'cylindricalToCartesian') {
+                result = cylindricalToCartesian(...coords);
+            }
+            
+            if (conversion === 'cartesian2dToPolar') {
+                document.getElementById('result').innerText = `Результат: R: ${result[0].toFixed(precision)}, Θ: ${result[1].toFixed(precision)}`;
+            } else if (conversion === 'polarToCartesian2d') {
+                document.getElementById('result').innerText = `Результат: X: ${result[0].toFixed(precision)}, Y: ${result[1].toFixed(precision)}`;
+            } else if (conversion === 'cartesianToCylindrical') {
+                document.getElementById('result').innerText = `Результат: R: ${result[0].toFixed(precision)}, Θ: ${result[1].toFixed(precision)}, Z: ${result[2].toFixed(precision)}`;
+            } else if (conversion === 'cartesianToSpherical') {
+                document.getElementById('result').innerText = `Результат: Ρ: ${result[0].toFixed(precision)}, Θ: ${result[1].toFixed(precision)}, Ф: ${result[2].toFixed(precision)}`;
+            } else if (conversion === 'sphericalToCartesian') {
+                document.getElementById('result').innerText = `Результат: X: ${result[0].toFixed(precision)}, Y: ${result[1].toFixed(precision)}, Z: ${result[2].toFixed(precision)}`;
+            } else if (conversion === 'cylindricalToCartesian') {
+                document.getElementById('result').innerText = `Результат: X: ${result[0].toFixed(precision)}, Y: ${result[1].toFixed(precision)}, Z: ${result[2].toFixed(precision)}`;
+            }
+        }
+
+        function cartesian2DToPolar(x, y) {
+            const r = Math.sqrt(x * x + y * y);
+            const theta = Math.atan2(y, x);
+            return [r, theta];
+        }
+
+        function polarToCartesian2D(r, theta) {
+            const x = r * Math.cos(theta);
+            const y = r * Math.sin(theta);
+            return [x, y];
+        }
+
+        function cartesianToSpherical(x, y, z) {
+            const rho = Math.sqrt(x * x + y * y + z * z);
+            const theta = Math.atan2(y, x);
+            const phi = Math.acos(z / rho);
+            return [rho, theta, phi];
+        }
+
+        function sphericalToCartesian(rho, theta, phi) {
+            const x = rho * Math.sin(phi) * Math.cos(theta);
+            const y = rho * Math.sin(phi) * Math.sin(theta);
+            const z = rho * Math.cos(phi);
+            return [x, y, z];
+        }
+
+        function cartesianToCylindrical(x, y, z) {
+            const r = Math.sqrt(x * x + y * y);
+            const theta = Math.atan2(y, x);
+            return [r, theta, z];
+        }
+
+        function cylindricalToCartesian(r, theta, z) {
+            const x = r * Math.cos(theta);
+            const y = r * Math.sin(theta);
+            return [x, y, z];
+        }
+    </script>
+</body>
+</html>
